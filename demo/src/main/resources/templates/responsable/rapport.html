@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="'Rapport — ' + ${stagiaire.nomComplet}">Rapport</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32.png}">
+  <style>
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color:#111827; padding:40px;}
+    .report-header{display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #0A2463; padding-bottom:16px; margin-bottom:24px;}
+    .report-header h1{color:#0A2463; font-size:22px; font-weight:800; margin:0;}
+    .report-header .brand{font-weight:800; color:#0A2463;}
+    .report-header .brand span{color:#00BFA5;}
+    .section-title{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:#00A38D; font-weight:700; border-bottom:1px solid #E5E7EB; padding-bottom:6px; margin:24px 0 12px;}
+    table{width:100%; border-collapse:collapse; margin-bottom:8px;}
+    th, td{text-align:left; padding:8px 10px; border-bottom:1px solid #E5E7EB; font-size:13px;}
+    th{color:#6B7280; text-transform:uppercase; font-size:10.5px; letter-spacing:.04em;}
+    .info-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; font-size:13.5px;}
+    .info-grid .label{color:#6B7280; font-size:11px; text-transform:uppercase;}
+    .print-bar{margin-bottom:20px;}
+    @media print{
+      .print-bar{display:none;}
+      body{padding:0;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar text-end">
+    <button class="btn btn-sm btn-primary" onclick="window.print()"><i class="fas"></i> Imprimer / Enregistrer en PDF</button>
+  </div>
+
+  <div class="report-header">
+    <div>
+      <h1>Rapport de stage</h1>
+      <div class="text-muted small" th:text="'Généré le ' + ${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}">Généré le 01/01/2026</div>
+    </div>
+    <div class="brand">Intern<span>Bridge</span> <span class="text-muted small">By BTK</span></div>
+  </div>
+
+  <div class="section-title">Identité</div>
+  <div class="info-grid">
+    <div><span class="label">Nom</span><br><span th:text="${stagiaire.nomComplet}">Nom</span></div>
+    <div><span class="label">École</span><br><span th:text="${stagiaire.ecole}">École</span></div>
+    <div><span class="label">Filière</span><br><span th:text="${stagiaire.filiere}">Filière</span></div>
+    <div><span class="label">Cycle</span><br><span th:text="${stagiaire.cycle}">Cycle</span></div>
+    <div><span class="label">Année d'inscription</span><br><span th:text="${stagiaire.anneeInscription}">2026</span></div>
+    <div><span class="label">Email</span><br><span th:text="${stagiaire.email}">email</span></div>
+  </div>
+
+  <div class="section-title">Sujet de stage</div>
+  <p><strong th:text="${stagiaire.titreSujet}">Titre</strong></p>
+  <p class="text-muted" th:text="${stagiaire.descriptionSujet}">Description</p>
+  <p class="small text-muted">
+    Période :
+    <span th:text="${#temporals.format(stagiaire.dateDebut, 'dd/MM/yyyy')}">01/01/2026</span> &rarr;
+    <span th:text="${#temporals.format(stagiaire.dateFin, 'dd/MM/yyyy')}">01/01/2026</span>
+    &middot; Avancement global : <strong th:text="${avancementMoyen} + '%'">0%</strong>
+  </p>
+
+  <div class="section-title">Les Tâches</div>
+  <table>
+    <thead><tr><th>Titre</th><th>Échéance</th><th>Statut</th><th>Avancement</th></tr></thead>
+    <tbody>
+      <tr th:each="l : ${livrables}">
+        <td th:text="${l.titre}">Titre</td>
+        <td th:text="${#temporals.format(l.dateEcheance, 'dd/MM/yyyy')}">01/01/2026</td>
+        <td th:text="${l.statut}">STATUT</td>
+        <td th:text="${l.avancement} + '%'">0%</td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(livrables)}"><td colspan="4" class="text-muted">Aucune tâche.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Évaluations</div>
+  <table>
+    <thead><tr><th>Date</th><th>Note</th><th>Type</th><th>Commentaire</th></tr></thead>
+    <tbody>
+      <tr th:each="e : ${evaluations}">
+        <td th:text="${#temporals.format(e.date, 'dd/MM/yyyy')}">01/01/2026</td>
+        <td th:text="${e.note} + '/20'">15/20</td>
+        <td th:text="${e.finale} ? 'Finale' : 'Intermédiaire'">Type</td>
+        <td th:text="${e.commentaire}">Commentaire</td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(evaluations)}"><td colspan="4" class="text-muted">Aucune évaluation.</td></tr>
+    </tbody>
+  </table>
+
+</body>
+</html>

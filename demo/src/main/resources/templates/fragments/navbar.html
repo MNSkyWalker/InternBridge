@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<th:block th:fragment="navbar">
+<nav class="navbar navbar-expand-lg navbar-custom">
+  <div class="container">
+    <a class="navbar-brand" th:href="@{/}">
+      <i class="fas fa-bridge brand-icon"></i>
+      <span>Intern</span><span class="brand-accent">Bridge</span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav ms-auto" sec:authorize="isAuthenticated()">
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/responsable/dashboard}"><i class="fas fa-users"></i> Mes stagiaires</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/responsable/analytics}"><i class="fas fa-chart-pie"></i> Analytique</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/responsable/reunions}"><i class="fas fa-calendar-days"></i> Réunions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/responsable/journal}"><i class="fas fa-clock-rotate-left"></i> Journal</a>
+        </li>
+        <li class="nav-item" sec:authorize="hasRole('RESPONSABLE')">
+          <a class="nav-link" th:href="@{/responsable/encadreurs}"><i class="fas fa-user-tie"></i> Encadreurs</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/profile}"><i class="fas fa-user-cog"></i> Mon profil</a>
+        </li>
+      </ul>
+
+      <div class="user-section" sec:authorize="isAuthenticated()">
+        <button class="theme-toggle" type="button" id="theme-toggle" title="Changer de thème">
+          <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+
+        <div class="dropdown notif-dropdown" th:data-csrf-token="${_csrf.token}" th:data-csrf-header="${_csrf.headerName}">
+          <button class="btn btn-notif position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-bell"></i>
+            <span class="notif-badge" th:if="${notificationsCount > 0}" th:text="${notificationsCount}">0</span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end notif-panel">
+            <div class="notif-panel-header">Notifications</div>
+            <div class="notif-list">
+              <div th:each="n : ${notifications}" th:data-id="${n.id}"
+                   class="notif-item" th:classappend="'notif-' + ${#strings.toLowerCase(n.type)}">
+                <i class="fas notif-icon"
+                   th:classappend="${n.type.name() == 'ALARME'} ? 'fa-triangle-exclamation' : (${n.type.name() == 'ATTENTION'} ? 'fa-clock' : 'fa-circle-info')"></i>
+                <span class="notif-text" th:text="${n.message}">Message</span>
+                <a th:href="${n.lien}" class="notif-goto" title="Voir"><i class="fas fa-arrow-right"></i></a>
+              </div>
+              <div class="notif-empty" th:if="${#lists.isEmpty(notifications)}">
+                <i class="fas fa-check-circle"></i> Rien à signaler pour le moment.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <img th:if="${photoProfil != null}" th:src="${photoProfil}" class="user-avatar user-avatar-img" alt="Photo de profil">
+        <div th:if="${photoProfil == null}" class="user-avatar" th:text="${#authentication.name.substring(0,1).toUpperCase()}">U</div>
+        <div>
+          <div class="user-name" sec:authentication="name">username</div>
+          <div class="user-role" th:text="${userRole}">Rôle</div>
+        </div>
+        <form th:action="@{/logout}" method="post" class="m-0">
+          <button type="submit" class="btn btn-sm btn-outline-light" title="Déconnexion">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </form>
+      </div>
+
+      <div class="user-section" sec:authorize="isAnonymous()">
+        <a th:href="@{/login}" class="btn btn-outline-light btn-sm">
+          <i class="fas fa-sign-in-alt me-1"></i> Connexion
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Chatbot flottant -->
+<div class="chatbot-widget" sec:authorize="isAuthenticated()"
+     th:data-csrf-token="${_csrf.token}" th:data-csrf-header="${_csrf.headerName}">
+  <button class="chatbot-fab" type="button" id="chatbot-toggle" title="Assistant InternBridge">
+    <i class="fas fa-robot"></i>
+  </button>
+
+  <div class="chatbot-panel" id="chatbot-panel">
+    <div class="chatbot-header">
+      <div><i class="fas fa-robot me-2"></i>Assistant InternBridge</div>
+      <button type="button" class="chatbot-close" id="chatbot-close" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="chatbot-messages" id="chatbot-messages">
+      <div class="chatbot-msg chatbot-msg-bot">
+        Bonjour ! Je peux vous aider à utiliser InternBridge ou répondre à vos questions sur le déroulement d'un stage. Que puis-je faire pour vous ?
+      </div>
+    </div>
+    <form class="chatbot-input-row" id="chatbot-form">
+      <input type="text" id="chatbot-input" placeholder="Écrivez votre message..." autocomplete="off" required>
+      <button type="submit" title="Envoyer"><i class="fas fa-paper-plane"></i></button>
+    </form>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  (function () {
+    var STORAGE_KEY = 'internbridge-theme';
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    var themeBtn = document.getElementById('theme-toggle');
+    var themeIcon = document.getElementById('theme-icon');
+    function syncIcon() {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (themeIcon) themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    syncIcon();
+
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function () {
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.setItem(STORAGE_KEY, 'light');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem(STORAGE_KEY, 'dark');
+        }
+        syncIcon();
+      });
+    }
+  })();
+
+  (function () {
+    var dropdown = document.querySelector('.notif-dropdown');
+    if (dropdown) {
+      var csrfToken = dropdown.dataset.csrfToken;
+      var csrfHeader = dropdown.dataset.csrfHeader;
+      var badge = dropdown.querySelector('.notif-badge');
+      var list = dropdown.querySelector('.notif-list');
+
+      var sendDismiss = function (id) {
+        var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        if (csrfHeader) headers[csrfHeader] = csrfToken;
+        fetch('/notifications/masquer', {
+          method: 'POST',
+          headers: headers,
+          body: 'id=' + encodeURIComponent(id),
+          keepalive: true
+        });
+      };
+
+      var updateBadge = function () {
+        var remaining = dropdown.querySelectorAll('.notif-item').length;
+        if (!badge) return;
+        if (remaining <= 0) {
+          badge.remove();
+          if (list) {
+            list.insertAdjacentHTML('beforeend',
+              '<div class="notif-empty"><i class="fas fa-check-circle"></i> Rien à signaler pour le moment.</div>');
+          }
+        } else {
+          badge.textContent = remaining;
+        }
+      };
+
+      var dismiss = function (item) {
+        var id = item.dataset.id;
+        sendDismiss(id);
+        item.classList.add('notif-item-removing');
+        window.setTimeout(function () {
+          item.remove();
+          updateBadge();
+        }, 220);
+      };
+
+      document.querySelectorAll('.notif-item').forEach(function (item) {
+        item.addEventListener('click', function (e) {
+          if (e.target.closest('.notif-goto')) {
+            sendDismiss(item.dataset.id);
+            return;
+          }
+          e.preventDefault();
+          dismiss(item);
+        });
+      });
+    }
+
+    var widget = document.querySelector('.chatbot-widget');
+    if (widget) {
+      var cToken = widget.dataset.csrfToken;
+      var cHeader = widget.dataset.csrfHeader;
+      var toggle = document.getElementById('chatbot-toggle');
+      var panel = document.getElementById('chatbot-panel');
+      var closeBtn = document.getElementById('chatbot-close');
+      var form = document.getElementById('chatbot-form');
+      var input = document.getElementById('chatbot-input');
+      var messages = document.getElementById('chatbot-messages');
+
+      toggle.addEventListener('click', function () { panel.classList.toggle('show'); });
+      closeBtn.addEventListener('click', function () { panel.classList.remove('show'); });
+
+      function ajouterMessage(texte, expediteur) {
+        var div = document.createElement('div');
+        div.className = 'chatbot-msg chatbot-msg-' + expediteur;
+        div.textContent = texte;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+        return div;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var texte = input.value.trim();
+        if (!texte) return;
+        ajouterMessage(texte, 'user');
+        input.value = '';
+        input.disabled = true;
+        var indicateur = ajouterMessage('...', 'bot');
+        indicateur.classList.add('chatbot-typing');
+
+        var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        if (cHeader) headers[cHeader] = cToken;
+
+        fetch('/chatbot/message', {
+          method: 'POST',
+          headers: headers,
+          body: 'message=' + encodeURIComponent(texte)
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            indicateur.textContent = data.reponse;
+            indicateur.classList.remove('chatbot-typing');
+          })
+          .catch(function () {
+            indicateur.textContent = "Désolé, une erreur est survenue.";
+            indicateur.classList.remove('chatbot-typing');
+          })
+          .finally(function () {
+            input.disabled = false;
+            input.focus();
+            messages.scrollTop = messages.scrollHeight;
+          });
+      });
+    }
+  })();
+</script>
+</th:block>
+
+</body>
+</html>

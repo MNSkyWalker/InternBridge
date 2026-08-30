@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes stagiaires — InternBridge</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32.png}">
+  <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16.png}">
+  <link rel="apple-touch-icon" th:href="@{/images/apple-touch-icon.png}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4">
+  <div class="alert alert-success alert-dismissible fade show" th:if="${success}" th:text="${success}">
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div class="alert alert-danger alert-dismissible fade show" th:if="${error}" th:text="${error}">
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 page-header">
+    <div>
+      <h1 th:text="'Bonjour, ' + ${#strings.arraySplit(nomComplet,' ')[0]} + ' !'">Bonjour !</h1>
+      <p>Voici l'avancement de vos stagiaires aujourd'hui.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a th:href="@{/responsable/export/stagiaires.csv}" class="btn btn-outline-secondary btn-pill d-inline-flex align-items-center justify-content-center gap-2">
+        <i class="fas fa-file-csv"></i><span>Exporter CSV</span>
+      </a>
+      <a sec:authorize="hasRole('RESPONSABLE')" th:href="@{/responsable/stagiaires/nouveau}" class="btn btn-login btn-pill"><i class="fas fa-user-plus me-1"></i> Nouveau stagiaire</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card bg-navy">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-label">Stagiaires suivis</div>
+        <div class="stat-value" th:text="${#lists.size(stagiaires)}">0</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-teal">
+        <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="stat-label">Avancement moyen</div>
+        <div class="stat-value" th:text="${avancementMoyenGlobal} + '%'">0%</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card" style="background:linear-gradient(135deg,#374151,#1F2937);">
+        <div class="stat-icon"><i class="fas fa-flag-checkered"></i></div>
+        <div class="stat-label">Stages terminés</div>
+        <div class="stat-value" th:text="${stagiairesTermines} + ' / ' + ${#lists.size(stagiaires)}">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recherche + filtres par statut -->
+  <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="search-input" placeholder="Rechercher un stagiaire, une école, un sujet...">
+    </div>
+  </div>
+  <div class="d-flex gap-2 mb-3 flex-wrap" id="filter-bar">
+    <button class="filter-chip active" data-filter="TOUS">Tous</button>
+    <button class="filter-chip" data-filter="CADRAGE">Cadrage</button>
+    <button class="filter-chip" data-filter="DEVELOPPEMENT">Développement</button>
+    <button class="filter-chip" data-filter="TESTS">Tests</button>
+    <button class="filter-chip" data-filter="TERMINE">Terminé</button>
+  </div>
+
+  <div class="row g-3" id="stagiaires-grid">
+    <div class="col-md-6" th:each="s : ${stagiaires}" th:attr="data-statut=${statutParStagiaire.get(s.id)},
+         data-search=${#strings.toLowerCase(s.nomComplet + ' ' + (s.ecole != null ? s.ecole : '') + ' ' + s.titreSujet)}">
+      <div class="card shadow-sm h-100 stagiaire-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex gap-2">
+              <div class="avatar-sm" th:text="${#strings.substring(s.nomComplet,0,1)}">U</div>
+              <div>
+                <h6 class="mb-0" th:text="${s.nomComplet}">Nom stagiaire</h6>
+                <p class="small text-muted mb-1" th:text="${s.titreSujet}">Titre du sujet</p>
+                <p class="small text-muted mb-0">
+                  <span th:if="${s.ecole}"><i class="fas fa-school"></i> <span th:text="${s.ecole}">École</span></span>
+                  <span th:if="${s.cycle}"> &middot; <span th:text="${s.cycle}">Cycle</span></span>
+                </p>
+              </div>
+            </div>
+            <span class="badge" th:classappend="'badge-' + ${#strings.toLowerCase(statutParStagiaire.get(s.id))}"
+                  th:text="${statutParStagiaire.get(s.id)}">STATUT</span>
+          </div>
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Avancement</span>
+            <span th:text="${avancementParStagiaire.get(s.id)} + '%'">0%</span>
+          </div>
+          <div class="progress mb-3" style="height:6px;">
+            <div class="progress-bar" th:style="'width:' + ${avancementParStagiaire.get(s.id)} + '%'"></div>
+          </div>
+          <div class="d-flex gap-2">
+            <a th:href="@{'/responsable/stagiaires/' + ${s.id}}" class="btn btn-sm btn-outline-primary btn-pill">Voir le détail</a>
+            <a th:if="${s.email}" th:href="'mailto:' + ${s.email}" class="btn btn-sm btn-outline-secondary btn-pill" title="Contacter par email">
+              <i class="fas fa-envelope"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12" th:if="${#lists.isEmpty(stagiaires)}">
+      <p class="text-muted">Aucun stagiaire pour le moment. Cliquez sur "Nouveau stagiaire" pour commencer.</p>
+    </div>
+  </div>
+
+  <p class="text-muted small mt-3" id="no-match-msg" style="display:none;">Aucun stagiaire à ce stade.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const chips = document.querySelectorAll('.filter-chip');
+  const cards = document.querySelectorAll('#stagiaires-grid > .col-md-6');
+  const noMatch = document.getElementById('no-match-msg');
+  const searchInput = document.getElementById('search-input');
+  let filtreActif = 'TOUS';
+
+  function appliquer() {
+    const recherche = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+
+    cards.forEach(card => {
+      const statutOk = filtreActif === 'TOUS' || card.dataset.statut === filtreActif;
+      const rechercheOk = !recherche || card.dataset.search.includes(recherche);
+      const match = statutOk && rechercheOk;
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    noMatch.style.display = (visible === 0 && cards.length > 0) ? '' : 'none';
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      filtreActif = chip.dataset.filter;
+      appliquer();
+    });
+  });
+
+  searchInput.addEventListener('input', appliquer);
+</script>
+</body>
+</html>

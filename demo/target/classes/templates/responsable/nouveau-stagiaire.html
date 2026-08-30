@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nouveau stagiaire — InternBridge</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <link rel="icon" type="image/png" sizes="32x32" th:href="@{/images/favicon-32.png}">
+  <link rel="icon" type="image/png" sizes="16x16" th:href="@{/images/favicon-16.png}">
+  <link rel="apple-touch-icon" th:href="@{/images/apple-touch-icon.png}">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4">
+  <a th:href="@{/responsable/dashboard}" class="small text-muted"><i class="fas fa-arrow-left"></i> Retour à mes stagiaires</a>
+
+  <div class="row justify-content-center mt-3">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="mb-1">Nouvelle fiche stagiaire</h5>
+          <p class="text-muted small mb-4">Identité de l'étudiant et sujet de stage, en une seule fois.</p>
+
+          <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+          <form th:action="@{/responsable/stagiaires}" method="post">
+
+            <div class="form-section-label">Identité</div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Nom complet</label>
+                <input type="text" name="nomComplet" class="form-control" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">École</label>
+                <input type="text" name="ecole" class="form-control" placeholder="ex. ESPRIT, INSAT...">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Année d'inscription</label>
+                <input type="number" name="anneeInscription" class="form-control" min="2000" max="2100" placeholder="2026">
+              </div>
+              <div class="col-md-3 mb-3">
+                <label class="form-label">Cycle</label>
+                <select name="cycle" class="form-select">
+                  <option value="">—</option>
+                  <option value="LICENCE">Licence</option>
+                  <option value="INGENIEUR">Ingénieur</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Filière / spécialité</label>
+                <input type="text" name="filiere" class="form-control" placeholder="ex. Génie Logiciel">
+              </div>
+            </div>
+
+            <div class="form-section-label">Stage</div>
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label class="form-label">Sujet du stage</label>
+                <input type="text" name="titreSujet" class="form-control" required>
+              </div>
+              <div class="col-12 mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="descriptionSujet" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Date de début</label>
+                <input type="date" name="dateDebut" class="form-control" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Date de fin</label>
+                <input type="date" name="dateFin" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-2">
+              <button type="submit" class="btn btn-login">Créer la fiche</button>
+              <a th:href="@{/responsable/dashboard}" class="btn btn-outline-secondary">Annuler</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
