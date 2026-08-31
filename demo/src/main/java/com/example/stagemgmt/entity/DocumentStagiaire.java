@@ -40,7 +40,7 @@ public class DocumentStagiaire {
      *  une colonne BLOB standard limitée à 64 Ko, ce qui fait échouer l'enregistrement
      *  de tout fichier réel (PDF, Word...) dès qu'il dépasse cette taille. */
     @Lob
-    @Column(nullable = false, columnDefinition = "LONGBLOB")
+    @Column(nullable = false, columnDefinition = "BLOB")
     private byte[] contenu;
 
     @ManyToOne(optional = false)
