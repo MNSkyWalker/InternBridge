@@ -18,6 +18,19 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+	
+	<distributionManagement>
+		<repository>
+			<id>nexus-releases</id>
+			<name>Nexus Release Repository</name>
+			<url>http://nexus:8081/repository/maven-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus-snapshots</id>
+			<name>Nexus Snapshot Repository</name>
+			<url>http://nexus:8081/repository/maven-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<dependencies>
 		<!-- Authentification Active Directory (optionnelle, voir app.ad.enabled) -->
@@ -37,7 +50,7 @@
 			<artifactId>totp</artifactId>
 			<version>1.7.1</version>
 		</dependency>
-		<!-- ✅ CRITICAL: Web starter - includes Jakarta Servlet API -->
+		<!-- CRITICAL: Web starter - includes Jakarta Servlet API -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
