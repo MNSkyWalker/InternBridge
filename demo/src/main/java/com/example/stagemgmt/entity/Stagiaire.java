@@ -3,60 +3,70 @@ package com.example.stagemgmt.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
+/**
+ * Fiche stagiaire : un enregistrement de données géré par le responsable et/ou
+ * l'encadreur qui lui est assigné (le stagiaire n'a pas de compte, ne se connecte
+ * pas). Regroupe l'identité de l'étudiant ET le sujet de stage (fusionnés en une
+ * seule entité depuis que le suivi est fait manuellement plutôt que par le
+ * stagiaire lui-même).
+ */
 @Entity
-@Table(name = "utilisateurs")
+@Table(name = "stagiaires")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Utilisateur {
+public class Stagiaire {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String username;
-
-    @Column(nullable = false)
-    private String password; // BCrypt-encoded
-
+    // ---- Identité de l'étudiant ----
     @Column(nullable = false)
     private String nomComplet;
 
-    @Column(nullable = false, unique = true)
     private String email;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
-    /** École / université du stagiaire (non applicable pour un responsable). */
     private String ecole;
 
-    @Builder.Default
-    private boolean actif = true;
+    /** Année d'inscription / promotion, ex: 2026. */
+    private Integer anneeInscription;
 
-    /** Photo de profil sous forme de "data:image/...;base64,..." - gardée hors des
-     *  API/listes en masse (pas de @JsonIgnore nécessaire ici puisque cette appli
-     *  ne sert pas de JSON, tout est rendu côté serveur). */
-    @Lob
+    /** Filière / profession visée, ex: "Génie Logiciel". */
+    private String filiere;
+
+    @Enumerated(EnumType.STRING)
+    private CycleEtudes cycle;
+
+    // ---- Sujet de stage ----
+    @Column(nullable = false)
+    private String titreSujet;
+
     @Column(columnDefinition = "CLOB")
-    private String photoProfil;
+    private String descriptionSujet;
 
-    @Builder.Default
-    private boolean twoFactorEnabled = false;
+    private LocalDate dateDebut;
+    private LocalDate dateFin;
 
-    /** Secret TOTP en base32. Null tant que la 2FA n'est pas activée. */
-    private String twoFactorSecret;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "responsable_id")
+    private Utilisateur responsable;
 
-    /** Identifiants stables des notifications que l'utilisateur a cliquées/masquées.
-     *  Table séparée (élément collection JPA) plutôt qu'un blob CSV - reste propre
-     *  même si la liste grossit. */
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "notifications_masquees", joinColumns = @JoinColumn(name = "utilisateur_id"))
-    @Column(name = "notification_id")
-    @Builder.Default
-    private java.util.Set<String> notificationsMasquees = new java.util.HashSet<>();
+    /** Encadreur (superviseur bancaire, compte avec le rôle ENCADREUR) assigné par
+     *  le responsable, optionnel. */
+    @ManyToOne
+    @JoinColumn(name = "encadreur_id")
+    private Utilisateur encadreur;
+
+    /** Vrai si cet utilisateur (responsable OU encadreur assigné) a le droit de
+     *  gérer ce stagiaire. */
+    public boolean estGerePar(String username) {
+        boolean estResponsable = responsable != null && responsable.getUsername().equals(username);
+        boolean estEncadreur = encadreur != null && encadreur.getUsername().equals(username);
+        return estResponsable || estEncadreur;
+    }
 }
