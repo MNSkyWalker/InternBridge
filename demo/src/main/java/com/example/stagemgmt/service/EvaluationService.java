@@ -17,7 +17,7 @@ public class EvaluationService {
     }
 
     public List<Evaluation> findByStagiaire(Long stagiaireId) {
-        return evaluationRepository.findByStagiaireIdOrderByDateDesc(stagiaireId);
+        return evaluationRepository.findByStagiaireIdOrderByDateEvaluationDesc(stagiaireId);
     }
 
     public Evaluation findById(Long id) {
