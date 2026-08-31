@@ -260,7 +260,7 @@ public class ResponsableController {
 
         Evaluation evaluation = Evaluation.builder()
                 .stagiaire(stagiaire)
-                .date(LocalDate.now())
+                .dateEvaluation(LocalDate.now())
                 .note(note)
                 .commentaire(commentaire)
                 .finale(finale)
