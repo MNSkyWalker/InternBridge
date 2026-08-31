@@ -23,14 +23,16 @@ public class Evaluation {
     @JoinColumn(name = "stagiaire_id")
     private Stagiaire stagiaire;
 
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(name = "date_evaluation", nullable = false)
+    private LocalDate dateEvaluation;
 
     /** Note sur 20, comme c'est l'usage académique/RH courant en France/Tunisie. */
     private Integer note;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String commentaire;
 
+    @Column(columnDefinition = "NUMBER(1,0)")
     private boolean finale;
 }
