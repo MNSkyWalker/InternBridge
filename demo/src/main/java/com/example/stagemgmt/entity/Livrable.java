@@ -24,7 +24,8 @@ public class Livrable {
     @Column(nullable = false)
     private String titre;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String description;
 
     private LocalDate dateEcheance;
