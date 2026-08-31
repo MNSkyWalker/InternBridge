@@ -46,7 +46,7 @@ public class Stagiaire {
     @Column(nullable = false)
     private String titreSujet;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "CLOB")
     private String descriptionSujet;
 
     private LocalDate dateDebut;
