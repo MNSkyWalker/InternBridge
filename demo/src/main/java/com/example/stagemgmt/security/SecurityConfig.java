@@ -66,43 +66,44 @@ public class SecurityConfig {
         return provider;
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(
-                            "/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico",
-                            "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
-                    ).permitAll()
-                    // Actions réservées au responsable : création de fiches stagiaire et gestion
-                    // des comptes encadreur (administratif). Ces règles précises doivent être
-                    // évaluées AVANT la règle générale "/responsable/**" ci-dessous.
-                    .requestMatchers("/responsable/stagiaires/nouveau", "/responsable/encadreurs", "/responsable/encadreurs/**")
-                        .hasRole("RESPONSABLE")
-                    .requestMatchers(org.springframework.http.HttpMethod.POST, "/responsable/stagiaires")
-                        .hasRole("RESPONSABLE")
-                    // Le reste de l'espace /responsable est partagé : le responsable ET
-                    // l'encadreur y gèrent les stagiaires qui leur sont assignés.
-                    .requestMatchers("/responsable/**").hasAnyRole("RESPONSABLE", "ENCADREUR")
-                    .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                    .loginPage("/login")
-                    .loginProcessingUrl("/login")
-                    .successHandler(authenticationSuccessHandler())
-                    .failureUrl("/login?error")
-                    .permitAll()
-            )
-            .logout(logout -> logout
-                    .logoutUrl("/logout")
-                    .logoutSuccessUrl("/login?logout")
-                    .invalidateHttpSession(true)
-                    .deleteCookies("JSESSIONID")
-                    .clearAuthentication(true)
-                    .permitAll()
-            )
-            .addFilterAfter(new TwoFactorGateFilter(), UsernamePasswordAuthenticationFilter.class);
+   @Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                        "/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico",
+                        "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+                        "/actuator/**"  // ✅ ADDED: Allows Prometheus to scrape metrics
+                ).permitAll()
+                // Actions réservées au responsable : création de fiches stagiaire et gestion
+                // des comptes encadreur (administratif). Ces règles précises doivent être
+                // évaluées AVANT la règle générale "/responsable/**" ci-dessous.
+                .requestMatchers("/responsable/stagiaires/nouveau", "/responsable/encadreurs", "/responsable/encadreurs/**")
+                    .hasRole("RESPONSABLE")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/responsable/stagiaires")
+                    .hasRole("RESPONSABLE")
+                // Le reste de l'espace /responsable est partagé : le responsable ET
+                // l'encadreur y gèrent les stagiaires qui leur sont assignés.
+                .requestMatchers("/responsable/**").hasAnyRole("RESPONSABLE", "ENCADREUR")
+                .anyRequest().authenticated()
+        )
+        .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .successHandler(authenticationSuccessHandler())
+                .failureUrl("/login?error")
+                .permitAll()
+        )
+        .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .clearAuthentication(true)
+                .permitAll()
+        )
+        .addFilterAfter(new TwoFactorGateFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+    return http.build();
+  }
 }
