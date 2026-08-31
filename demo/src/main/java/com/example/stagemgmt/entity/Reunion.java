@@ -19,15 +19,17 @@ public class Reunion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "date_heure", nullable = false)
     private LocalDateTime dateHeure;
 
     private String lieu;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String notes;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     @Builder.Default
     private StatutReunion statut = StatutReunion.PLANIFIEE;
 
