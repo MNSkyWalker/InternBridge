@@ -88,7 +88,7 @@ public class DataSeeder implements CommandLineRunner {
         livrableRepository.save(Livrable.builder().titre("Pipeline Jenkins (build + tests)").statut(StatutLivrable.CADRAGE).avancement(0)
                 .dateEcheance(LocalDate.now().plusWeeks(3)).stagiaire(yassine).build());
 
-        evaluationRepository.save(Evaluation.builder().stagiaire(yassine).date(LocalDate.now().minusDays(2))
+        evaluationRepository.save(Evaluation.builder().stagiaire(yassine).dateEvaluation(LocalDate.now().minusDays(2))
                 .note(15).commentaire("Bonne compréhension du besoin, cahier des charges clair.").finale(false).build());
 
         log.warn("=============================================================");
