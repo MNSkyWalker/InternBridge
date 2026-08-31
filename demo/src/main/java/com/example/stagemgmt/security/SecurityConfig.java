@@ -73,7 +73,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
                 .requestMatchers(
                         "/login", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico",
                         "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
-                        "/actuator/**"  // ✅ ADDED: Allows Prometheus to scrape metrics
+                        "/actuator/**"  
                 ).permitAll()
                 // Actions réservées au responsable : création de fiches stagiaire et gestion
                 // des comptes encadreur (administratif). Ces règles précises doivent être
