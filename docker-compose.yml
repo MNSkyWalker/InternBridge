@@ -59,8 +59,8 @@ services:
   # SonarQube (Code Quality)
   # ==========================================
    sonarqube:
-    image: sonarqube:lts-community   
-    container_name: sonarqube
+     image: sonarqube:latest   # This always pulls the newest Community Build
+     container_name: sonarqube
     ports:
       - "9000:9000"
     volumes:
@@ -69,6 +69,8 @@ services:
       - sonarqube_logs:/opt/sonarqube/logs
     networks:
       - devops-network
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
 
   # ==========================================
   # Nexus (Artifact Repository)
