@@ -12,7 +12,7 @@ scrape_configs:
     static_configs:
       - targets: ['jenkins:8080']
      basic_auth:
-    username: admin
+    username: InternBridge
     password: 24Bridge456
     
   - job_name: 'sonarqube'
