@@ -1,7 +1,4 @@
 services:
-  # ==========================================
-  # Oracle Database
-  # ==========================================
   oracle-db:
     image: container-registry.oracle.com/database/free:latest-lite
     container_name: oracle-free
@@ -21,9 +18,6 @@ services:
       timeout: 10s
       retries: 10
 
-  # ==========================================
-  # Spring Boot Application
-  # ==========================================
   app:
     build: .
     container_name: intern-app
@@ -40,9 +34,6 @@ services:
     networks:
       - devops-network
 
-  # ==========================================
-  # Jenkins (CI/CD) - USING YOUR OLD DATA
-  # ==========================================
   jenkins:
     image: myjenkins-blueocean:2.568.2-1
     container_name: jenkins-blueocean
@@ -50,50 +41,46 @@ services:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - jenkins-data:/var/jenkins_home   # ✅ CHANGED: Using your old data volume
+      - jenkins-data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - devops-network
 
-  # ==========================================
-  # SonarQube (Code Quality)
-  # ==========================================
-   sonarqube:
-     image: sonarqube:latest   # This always pulls the newest Community Build
-     container_name: sonarqube
+  sonarqube:
+    image: sonarqube:latest
+    container_name: sonarqube
     ports:
       - "9000:9000"
+    mem_limit: 2g
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
     networks:
       - devops-network
-    environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
 
-  # ==========================================
-  # Nexus (Artifact Repository)
-  # ==========================================
   nexus:
-  image: sonatype/nexus3
-  container_name: nexus
-  ports:
-    - "8081:8081"
-  environment:
-    - NEXUS_EDITION=community
-    - INSTALL4J_ADD_VM_PARAMS=-Dnexus.eula.accept=true
-  volumes:
-    - nexus_data:/nexus-data
-  networks:
-    - devops-network
+    image: sonatype/nexus3
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Dnexus.eula.accept=true
+    volumes:
+      - nexus_data:/nexus-data
+    networks:
+      - devops-network
+
+networks:
+  devops-network:
+    driver: bridge
 
 volumes:
   oracle_data:
-  # ✅ CHANGED: Using your existing volume instead of creating a new one
   jenkins-data:
     external: true
-  # ❌ REMOVED: jenkins_home (no longer needed)
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
