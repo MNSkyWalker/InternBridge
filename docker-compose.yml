@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   # ==========================================
   # Oracle Database
@@ -43,7 +41,7 @@ services:
       - devops-network
 
   # ==========================================
-  # Jenkins (CI/CD)
+  # Jenkins (CI/CD) - USING YOUR OLD DATA
   # ==========================================
   jenkins:
     image: myjenkins-blueocean:2.568.2-1
@@ -52,7 +50,7 @@ services:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - jenkins_home:/var/jenkins_home
+      - jenkins-data:/var/jenkins_home   # ✅ CHANGED: Using your old data volume
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - devops-network
@@ -91,7 +89,10 @@ networks:
 
 volumes:
   oracle_data:
-  jenkins_home:
+  # ✅ CHANGED: Using your existing volume instead of creating a new one
+  jenkins-data:
+    external: true
+  # ❌ REMOVED: jenkins_home (no longer needed)
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
