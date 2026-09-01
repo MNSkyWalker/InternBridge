@@ -1,0 +1,98 @@
+version: '3'
+
+services:
+  # ==========================================
+  # Oracle Database
+  # ==========================================
+  oracle-db:
+    image: container-registry.oracle.com/database/free:latest-lite
+    container_name: oracle-free
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    environment:
+      ORACLE_PWD: oracle
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+      - ./sql-scripts:/opt/oracle/scripts/startup
+    networks:
+      - devops-network
+    healthcheck:
+      test: ["CMD", "sqlplus", "-L", "system/oracle@//localhost:1521/FREE"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  # ==========================================
+  # Spring Boot Application
+  # ==========================================
+  app:
+    build: .
+    container_name: intern-app
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle-db:1521/FREE
+      SPRING_DATASOURCE_USERNAME: system
+      SPRING_DATASOURCE_PASSWORD: oracle
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    networks:
+      - devops-network
+
+  # ==========================================
+  # Jenkins (CI/CD)
+  # ==========================================
+  jenkins:
+    image: myjenkins-blueocean:2.568.2-1
+    container_name: jenkins-blueocean
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - devops-network
+
+  # ==========================================
+  # SonarQube (Code Quality)
+  # ==========================================
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - devops-network
+
+  # ==========================================
+  # Nexus (Artifact Repository)
+  # ==========================================
+  nexus:
+    image: sonatype/nexus3
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    volumes:
+      - nexus_data:/nexus-data
+    networks:
+      - devops-network
+
+networks:
+  devops-network:
+    driver: bridge
+
+volumes:
+  oracle_data:
+  jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  nexus_data:
